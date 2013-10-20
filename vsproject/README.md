@@ -1,0 +1,1 @@
+Для запуска bm3d потребуется libfftw3f-3.dll, которую можно взять тут ftp://ftp.fftw.org/pub/fftw/fftw-3.3.3-dll32.zip

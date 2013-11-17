@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "optimizationTest", "optimizationTest\optimizationTest.vcxproj", "{383E9D31-36A5-4BFF-83CB-500B86A5FA28}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{383E9D31-36A5-4BFF-83CB-500B86A5FA28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{383E9D31-36A5-4BFF-83CB-500B86A5FA28}.Debug|Win32.Build.0 = Debug|Win32
+		{383E9D31-36A5-4BFF-83CB-500B86A5FA28}.Release|Win32.ActiveCfg = Release|Win32
+		{383E9D31-36A5-4BFF-83CB-500B86A5FA28}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

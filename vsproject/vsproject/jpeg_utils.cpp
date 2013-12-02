@@ -62,6 +62,8 @@ void write_JPEG_file(
 		cinfo.comp_info[i].v_samp_factor=1;
 	}
 
+	cinfo.do_fancy_downsampling = FALSE;
+
 
 	// Start compressor
 	jpeg_start_compress(&cinfo, TRUE);
@@ -224,7 +226,8 @@ void convertToJpegData(
 		for(size_t j=0; j<image_width; ++j)
 			for(size_t k=0; k<channels; ++k)
 				jpegData[i*image_width*channels + j*channels + k] = 
-					std::min((int)round(pngData[k*image_height*image_width + i*image_width + j]), 255);
+					std::max(0, std::min((int)round(pngData[k*image_height*image_width + i*image_width + j]), 255));
+					//(int)round(pngData[k*image_height*image_width + i*image_width + j]);
 }
 
 void convertToPngData(
@@ -300,8 +303,8 @@ void getBounds(std::vector<block> const & coeffs, size_t chSize, QuantTables con
 
 		for(size_t k = 0; k < DCTSIZE2; ++k)
 		{
-			lower[i][k]= (coeffs[i][k] - 0.5f) * qtables[i/chSize][k];
-			upper[i][k] = (coeffs[i][k] + 0.5f) * qtables[i/chSize][k];
+			lower[i][k]= (coeffs[i][k] - 0.4999f) * qtables[i/chSize][k];
+			upper[i][k] = (coeffs[i][k] + 0.4999f) * qtables[i/chSize][k];
 		}
 	}
 }

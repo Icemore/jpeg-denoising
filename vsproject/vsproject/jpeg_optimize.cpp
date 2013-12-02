@@ -31,7 +31,7 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 
 	float diff = 1;
 	int cnt = 0;
-	while(abs(diff) > eps && cnt < 500)
+	while(abs(diff) > eps)
 	{
 		// Step for y
 		idct(rho, y);
@@ -98,7 +98,7 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 		++cnt;
 	}
 
-	idct(rho, y);
+	//idct(rho, y);
 
 	//if(cnt > 1)
 	//{

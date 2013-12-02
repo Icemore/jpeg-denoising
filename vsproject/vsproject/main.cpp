@@ -1,17 +1,18 @@
+#define _USE_MATH_DEFINES
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <fstream>
 #include <vector>
-#include <math.h>
-#include <string.h>
 
-#include "bm3d.h"
-#include "utilities.h"
+
 #include "jpeg_utils.h"
+#include "io_png.h"
+#include "jpeg_optimize.h"
 
 using namespace std;
 
+#define FAST_FLOAT float
 
 int main(int argc, char **argv)
 {
@@ -24,17 +25,17 @@ int main(int argc, char **argv)
 	read_JPEG_file(argv[1], jpegData, w, h, c);
 	read_JPEG_coefficients(argv[1], coeffs, qtables, sfactors);
 
-	cout<<coeffs.size()<<endl;
-	cout<<coeffs[0].size()<<endl;
-	cout<<coeffs[0][0].size()<<endl;
-	cout<<coeffs[0][0][0].size()<<endl;
+	vector<block> rho;
+	vector<block> lower, upper;
 
-	for (int i = 0; i < sfactors.size(); i++)
-	{
-		cout<<sfactors[i].first<<" "<<sfactors[i].second<<endl;
-	}
+	jpegCoeffBlocksToMyBlocks(coeffs, rho);
+	getBounds(rho, (w/DCTSIZE)*(h/DCTSIZE), qtables, lower, upper);
+	dequant(rho, (w/DCTSIZE)*(h/DCTSIZE), qtables);
 
-    write_JPEG_file(argv[2], jpegData, w, h, c, 10);
+	optimize(jpegData, rho, lower, upper, w, h, c);
+	
+	write_png_f32(argv[2], &jpegData[0], w, h, c);
+    write_JPEG_file("q.jpg", jpegData, w, h, c, 80, &qtables);
 
-	return EXIT_SUCCESS;
+	return 0;
 }

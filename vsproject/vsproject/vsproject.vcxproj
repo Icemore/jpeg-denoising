@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(ProjectDir)include;</IncludePath>
     <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);$(ProjectDir)libs;</LibraryPath>
   </PropertyGroup>
@@ -63,6 +63,8 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>jpeg.lib;libfftw3f-3.lib;libpng16.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -91,11 +93,15 @@
       </HeapReserveSize>
       <StackReserveSize>
       </StackReserveSize>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bm3d.cpp" />
+    <ClCompile Include="dct.cpp" />
     <ClCompile Include="io_png.c" />
+    <ClCompile Include="jpeg_optimize.cpp" />
     <ClCompile Include="jpeg_utils.cpp" />
     <ClCompile Include="lib_transforms.cpp" />
     <ClCompile Include="main.cpp" />
@@ -104,7 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bm3d.h" />
+    <ClInclude Include="dct.h" />
     <ClInclude Include="io_png.h" />
+    <ClInclude Include="jpeg_optimize.h" />
     <ClInclude Include="jpeg_utils.h" />
     <ClInclude Include="lib_transforms.h" />
     <ClInclude Include="mt19937ar.h" />

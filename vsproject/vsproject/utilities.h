@@ -4,6 +4,7 @@
 #include <vector>
 #include <fftw3.h>
 
+
 //! Read image and check number of channels
 int load_image(
     char* name

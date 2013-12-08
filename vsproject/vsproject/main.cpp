@@ -5,7 +5,8 @@
 #include <iostream>
 #include <vector>
 
-
+#include "utilities.h"
+#include "bm3d.h"
 #include "jpeg_utils.h"
 #include "io_png.h"
 #include "jpeg_optimize.h"
@@ -25,6 +26,13 @@ int main(int argc, char **argv)
 	QuantTables qtables;
 	SamplingFactors sfactors;
 
+	//load_image("two.png", jpegData, &w, &h, &c);
+	//vector<float> t, r;
+	//run_bm3d(20, jpegData, t, r, w, h, c, true, true, 4, 4, 1);
+	//save_image("two_out.png", r, w, h, c);
+
+	//return 0;
+	
 	read_JPEG_file(argv[1], jpegData, w, h, c);
 	read_JPEG_coefficients(argv[1], coeffs, qtables, sfactors);
 

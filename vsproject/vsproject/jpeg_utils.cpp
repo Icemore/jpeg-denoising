@@ -4,6 +4,10 @@
 #include "io_png.h"
 #include <memory.h>
 
+#include "dct.h"
+
+#include <iostream>
+
 void write_JPEG_file(
 	char const * filename
 ,	std::vector<float>& image
@@ -40,6 +44,7 @@ void write_JPEG_file(
 	cinfo.image_width = image_width;
 	cinfo.image_height = image_height;
 	cinfo.input_components = channels;
+	
 	cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
 
 	jpeg_set_defaults(&cinfo);
@@ -177,6 +182,9 @@ void read_JPEG_coefficients(char const * filename, 	CoeffBlocks& image_coeffs, Q
 
 	// Read file parameters
 	jpeg_read_header(&cinfo, TRUE);
+	cinfo.do_fancy_upsampling = FALSE;
+	cinfo.dither_mode = JDITHER_NONE;
+	cinfo.dct_method = JDCT_FLOAT;
 
 	// Read data
 	image_coeffs.resize(cinfo.num_components);
@@ -226,8 +234,8 @@ void convertToJpegData(
 		for(size_t j=0; j<image_width; ++j)
 			for(size_t k=0; k<channels; ++k)
 				jpegData[i*image_width*channels + j*channels + k] = 
-					std::max(0, std::min((int)round(pngData[k*image_height*image_width + i*image_width + j]), 255));
-					//(int)round(pngData[k*image_height*image_width + i*image_width + j]);
+					//std::max(0, std::min((int)round(pngData[k*image_height*image_width + i*image_width + j]), 255));
+					(int)round(pngData[k*image_height*image_width + i*image_width + j]);
 }
 
 void convertToPngData(
@@ -303,8 +311,8 @@ void getBounds(std::vector<block> const & coeffs, size_t chSize, QuantTables con
 
 		for(size_t k = 0; k < DCTSIZE2; ++k)
 		{
-			lower[i][k]= (coeffs[i][k] - 0.4999f) * qtables[i/chSize][k];
-			upper[i][k] = (coeffs[i][k] + 0.4999f) * qtables[i/chSize][k];
+			lower[i][k]= (coeffs[i][k] - 0.3999f) * qtables[i/chSize][k];
+			upper[i][k] = (coeffs[i][k] + 0.3999f) * qtables[i/chSize][k];
 		}
 	}
 }
@@ -348,32 +356,77 @@ void color_space_transform(
 
     if (rgb2ycbcr)
     {
-    #pragma omp parallel for
+    //#pragma omp parallel for
         for (int k = 0; k < int(width * height); k++)
         {
             //! Y
-            tmp[k + red  ] =  - 128 + 0.299f * img[k + red] + 0.587f * img[k + green] + 0.114f * img[k + blue];
+            tmp[k + red  ] =  0.299f * img[k + red] + 0.587f * img[k + green] + 0.114f * img[k + blue];
             //! U
-            tmp[k + green] = -0.168736f * img[k + red] - 0.331264f * img[k + green] + 0.500f * img[k + blue];
+            tmp[k + green] = (float)128 -0.1687f * img[k + red] - 0.3313f * img[k + green] + 0.500f * img[k + blue];
             //! V
-            tmp[k + blue ] = 0.500f * img[k + red] - 0.418688f * img[k + green] - 0.081312f * img[k + blue];
+            tmp[k + blue ] = (float)128 + 0.500f * img[k + red] - 0.4187f * img[k + green] - 0.0813f * img[k + blue];
         }
     }
     else
     {
-    #pragma omp parallel for
+    //#pragma omp parallel for
         for (int k = 0; k < int(width * height); k++)
         {
             //! Red   channel
-            tmp[k + red  ] = 1.000f * (img[k + red] + 128) + 0.000f * img[k + green] + 1.402f * img[k + blue];
+            tmp[k + red] = 1.000f * (img[k + red]) + 0.000f * img[k + green] + 1.402f * (img[k + blue]-128.0f);
             //! Green channel
-            tmp[k + green] = 1.000f * (img[k + red] + 128) - 0.34414f * (img[k + green]) - 0.71414f * (img[k + blue]);
+            tmp[k + green] = 1.000f * (img[k + red]) - 0.34414f * (img[k + green]-128) - 0.71414f * (img[k + blue]-128.0f);
             //! Blue  channel
-            tmp[k + blue ] = 1.000f * (img[k + red] + 128) + 1.772f * (img[k + green]) + 0.000f * img[k + blue];
+            tmp[k + blue] = 1.000f * (img[k + red]) + 1.772f * (img[k + green]-128) + 0.000f * img[k + blue];
         }
     }
    
-    #pragma omp parallel for
-        for (int k = 0; k < int(width * height * chnls); k++)
-            img[k] = tmp[k];
+    //#pragma omp parallel for
+    for (int k = 0; k < int(width * height * chnls); k++)
+	{
+
+
+        img[k] = tmp[k];
+	}
+}
+
+
+void coeffsToImage(std::vector<block> &rho, std::vector<float> &image, int w, int h, int c)
+{
+	std::vector<block> y;
+	y.resize(rho.size());
+
+	for(size_t i = 0; i < rho.size(); ++i)
+	{
+		for(size_t j = 0; j < DCTSIZE2; ++j)
+		{
+			//rho[i][j] = (int)(round(rho[i][j]));
+		}
+		y[i].resize(DCTSIZE2);
+		idct(rho[i], y[i]);
+	}
+
+	blocksToImage(y, image, w, h, c);
+
+	for(size_t i = 0; i < image.size(); ++i)
+	{
+		float &cur = image[i];
+		
+		cur+=(float)128;
+		//cur = (float)(int)(cur);
+		
+		//cur = std::min(255.0f, cur);
+		//cur = std::max(0.0f, cur);
+	}
+
+	color_space_transform(image, w, h, c, false);
+	
+	for(size_t k = 0; k < image.size(); ++k)
+	{
+		image[k] = (float)(round)(image[k]);
+
+
+		image[k] = std::min(255.0f,  image[k]);
+		image[k] = std::max(0.0f,  image[k]);
+	}
 }

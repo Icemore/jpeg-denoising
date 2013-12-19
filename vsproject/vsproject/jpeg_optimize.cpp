@@ -44,41 +44,41 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 		fdct(y, rho);
 		for(size_t i = 0; i < DCTSIZE2; ++i)
 		{
-			if(rho[i] < u[i] - muU[i] * lambdaU[i] && rho[i] > l[i] + muL[i] * lambdaL[i])
-				continue;
+			//if(rho[i] < u[i] - muU[i] * lambdaU[i] && rho[i] > l[i] + muL[i] * lambdaL[i])
+			//	continue;
 
-			float cur = (rho[i] / sigmaSqr +  u[i]/muU[i] - lambdaU[i]) / (1/sigmaSqr + 1/muU[i]);
-			if(cur >= u[i] - muU[i] * lambdaU[i])
-			{
-				rho[i] = cur;
-				continue;
-			}
-
-			cur = (rho[i]/sigmaSqr + l[i]/muL[i] + lambdaL[i]) / (1/sigmaSqr + 1/muL[i]);
-			if(cur <= l[i] + muL[i]*lambdaL[i])
-			{
-				rho[i]=cur;
-				continue;
-			}
-
-			cout << "Can't optimize! "<<rho[i] << lambdaL[i] << " " << lambdaU[i] <<" " << l[i] <<" " <<u[i]<<endl;
-
-			//float left = 1 / sigmaSqr;
-			//float right = rho[i] / sigmaSqr;
-
-			//if(right / left >= u[i] - muU[i] * lambdaU[i])
+			//float cur = (rho[i] / sigmaSqr +  u[i]/muU[i] - lambdaU[i]) / (1/sigmaSqr + 1/muU[i]);
+			//if(cur >= u[i] - muU[i] * lambdaU[i])
 			//{
-			//	left += 1 / muU[i];
-			//	right += u[i] / muU[i] - lambdaU[i];
+			//	rho[i] = cur;
+			//	continue;
 			//}
 
-			//if(right / left <= l[i] + muL[i] * lambdaL[i])
+			//cur = (rho[i]/sigmaSqr + l[i]/muL[i] + lambdaL[i]) / (1/sigmaSqr + 1/muL[i]);
+			//if(cur <= l[i] + muL[i]*lambdaL[i])
 			//{
-			//	left += 1 / muL[i];
-			//	right += l[i] / muL[i] + lambdaL[i];
+			//	rho[i]=cur;
+			//	continue;
 			//}
 
-			//rho[i] = right / left;
+			//cout << "Can't optimize! "<<rho[i] << lambdaL[i] << " " << lambdaU[i] <<" " << l[i] <<" " <<u[i]<<endl;
+
+			float left = 1 / sigmaSqr;
+			float right = rho[i] / sigmaSqr;
+
+			if(right / left >= u[i] - muU[i] * lambdaU[i])
+			{
+				left += 1 / muU[i];
+				right += u[i] / muU[i] - lambdaU[i];
+			}
+
+			if(right / left <= l[i] + muL[i] * lambdaL[i])
+			{
+				left += 1 / muL[i];
+				right += l[i] / muL[i] + lambdaL[i];
+			}
+
+			rho[i] = right / left;
 		}
 
 		// Step for lambda
@@ -115,7 +115,7 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 	}
 }
 
-void optimize(vector<float> & image, vector<block> & rho, vector<block> & lower, vector<block> & upper, int w, int h, int c)
+void optimize(float sigma, vector<float> & image, vector<block> & rho, vector<block> & lower, vector<block> & upper, int w, int h, int c)
 {
 	vector<float> tmp(image.size());
 	vector<float> res(image.size());
@@ -128,19 +128,29 @@ void optimize(vector<float> & image, vector<block> & rho, vector<block> & lower,
 	for(size_t i = 0; i < y.size(); ++i)
 		y[i].resize(DCTSIZE2);
 
-	for(size_t t = 0; t < 5; ++t)
+
+	for(size_t t = 0; t < 10; ++t)
 	{
 		cout << "starting bm3d" << endl;
-		run_bm3d(20, image, tmp, res, w, h, c, true, true, DCT, DCT, YCBCR);
+		run_bm3d(sigma-t, image, tmp, res, w, h, c, true, true, BIOR, BIOR, YCBCR);
 		//res = image;
 		cout << "bm3d done" << endl;
 
 		color_space_transform(res, w, h, c, true);
+		for(size_t i = 0; i < res.size(); ++i)
+		{
+			res[i] = (float)round(res[i]);
+			res[i] = std::min(255.0f, res[i]);
+			res[i] = std::max(0.0f, res[i]);
+
+			res[i]-=128;
+		}
 		cout << "color converted" << endl;
 		imageToBlocks(res, Pomega, w, h, c);
 		cout << "image to blocks done" << endl;
 
-		for(size_t i = 0; i < rho.size(); ++i)
+		#pragma omp parallel for
+		for(int i = 0; i < rho.size(); ++i)
 		{
 			//y[i] = Pomega[i];
 			optimizeForBlock(Pomega[i], rho[i], y[i], lower[i], upper[i]);
@@ -151,7 +161,23 @@ void optimize(vector<float> & image, vector<block> & rho, vector<block> & lower,
 		blocksToImage(y, image, w, h, c);
 		cout << "back to image" << endl;
 
+		for(size_t i = 0; i < image.size(); ++i)
+		{
+			image[i]+=128;
+			image[i] = round(image[i]);
+			image[i] = std::min(255.0f, image[i]);
+			image[i] = std::max(0.0f, image[i]);
+		}
+
 		color_space_transform(image, w, h, c, false);
+
+		for(size_t i = 0; i < image.size(); ++i)
+		{
+			image[i] = round(image[i]);
+			image[i] = std::min(255.0f, image[i]);
+			image[i] = std::max(0.0f, image[i]);
+		}
+
 		cout << "color space back to normal" << endl;
 	}
 }

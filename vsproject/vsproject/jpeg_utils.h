@@ -11,12 +11,13 @@ typedef std::vector< std::pair< int, int> > SamplingFactors;
 typedef std::vector<float> block;
 typedef std::vector< std::vector< std::vector< std::vector<float> > > > imageBlocks;
 
-inline float round(float r)
+inline int round(float r)
 {
     float res =  (r > 0.0f) ? (r + 0.5f) : (r - 0.5f); 
-	return float((int)res);
+	return (int)res;
 }
 
+void coeffsToImage(std::vector<block> &rho, std::vector<float> &image, int w, int h, int c);
 void blocksToImage(std::vector<block> const & blocks, std::vector<float> & image, int w, int h, int c);
 void jpegCoeffBlocksToMyBlocks(CoeffBlocks & from, std::vector<block> & to);
 void dequant(std::vector<block> & coeffs, size_t chSize, QuantTables const & qtables);

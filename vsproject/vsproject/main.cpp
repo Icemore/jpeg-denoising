@@ -43,26 +43,6 @@ void printBlock(block t, int id, std::string msg)
 	cout << endl;
 }
 
-double PSNR_Matrix( vector<float> img1, // changed image
-                    vector<float> img2 // original image
-					)
-{
-    long i;
-    double error, pix, x, psnr;
-
-    /* calculating distortion */
-    error = 0.0;
-    pix = (double)img1.size();
-    for(i=0;i<img1.size();i++)
-    {
-        x = (double)img1[i] - (double)img2[i];
-        error += ((x * x) / pix);
-    }
-    psnr = 10.0 * log10((255.0*255.0)/error);
-
-    return (psnr);
-}
-
 int main(int argc, char **argv)
 {
 	//freopen("out.txt", "w", stdout);
@@ -90,7 +70,7 @@ int main(int argc, char **argv)
     getBounds(rho, chSize, qtables, lower, upper);
     dequant(rho, chSize, qtables);
 	
-    optimize(atoi(argv[3]), jpegData, rho, lower, upper, w, h, c);
+    optimize(atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
 
     // test coeffs
     for(size_t i = 0; i < orig.size(); ++i)
@@ -120,7 +100,7 @@ int main(int argc, char **argv)
     // from coeffs
 	coeffsToImage(rho, jpegData, w, h, c);
 
-	cout << "!!!PSNR: " << PSNR_Matrix(jpegData, origImage) << endl;
+	cout << "!!!PSNR: " << PSNR(jpegData, origImage) << endl;
 
 	write_png_f32(argv[2], &jpegData[0], w, h, c);
     write_JPEG_file("q.jpg", jpegData, w, h, c, 80, &qtables);

@@ -17,6 +17,26 @@ inline int round(float r)
 	return (int)res;
 }
 
+inline double PSNR(std::vector<float> img1, // changed image
+                    std::vector<float> img2 // original image
+					)
+{
+    long i;
+    double error, pix, x, psnr;
+
+    /* calculating distortion */
+    error = 0.0;
+    pix = (double)img1.size();
+    for(i=0;i<img1.size();i++)
+    {
+        x = (double)img1[i] - (double)img2[i];
+        error += ((x * x) / pix);
+    }
+    psnr = 10.0 * log10((255.0*255.0)/error);
+
+    return (psnr);
+}
+
 void coeffsToImage(std::vector<block> &rho, std::vector<float> &image, int w, int h, int c);
 void blocksToImage(std::vector<block> const & blocks, std::vector<float> & image, int w, int h, int c);
 void jpegCoeffBlocksToMyBlocks(CoeffBlocks & from, std::vector<block> & to);

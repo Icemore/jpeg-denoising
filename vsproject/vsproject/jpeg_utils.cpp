@@ -9,13 +9,13 @@
 #include <iostream>
 
 void write_JPEG_file(
-	char const * filename
-,	std::vector<float>& image
-,	size_t image_width
-,	size_t image_height
-,	size_t channels
-,	int quality
-,	QuantTables * qtables
+    char const * filename
+,   std::vector<float>& image
+,   size_t image_width
+,   size_t image_height
+,   size_t channels
+,   int quality
+,   QuantTables * qtables
 ){
 	jpeg_compress_struct cinfo;
 	jpeg_error_mgr jerr;
@@ -92,11 +92,11 @@ void write_JPEG_file(
 
 
 void read_JPEG_file(
-	char const * filename
-,	std::vector<float>& image
-,	size_t &image_width
-,	size_t &image_height
-,	size_t &channels
+    char const * filename
+,   std::vector<float>& image
+,   size_t &image_width
+,   size_t &image_height
+,   size_t &channels
 ){
 
 	jpeg_decompress_struct cinfo;
@@ -141,7 +141,7 @@ void read_JPEG_file(
 	// Make a one-row-high sample array that will go away when done with image
 	buffer = (*cinfo.mem->alloc_sarray)
 		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-    
+	
 	// Read data
 	while (cinfo.output_scanline < cinfo.output_height) {
 		jpeg_read_scanlines(&cinfo, buffer, 1);
@@ -224,11 +224,11 @@ void read_JPEG_coefficients(char const * filename, 	CoeffBlocks& image_coeffs, Q
 }
 
 void convertToJpegData(
-	JSAMPLE* jpegData
-,	std::vector<float>& pngData
-,	size_t image_width
-,	size_t image_height
-,	size_t channels
+    JSAMPLE* jpegData
+,   std::vector<float>& pngData
+,   size_t image_width
+,   size_t image_height
+,   size_t channels
 ){
 	for(size_t i=0; i<image_height; ++i)
 		for(size_t j=0; j<image_width; ++j)
@@ -239,11 +239,11 @@ void convertToJpegData(
 }
 
 void convertToPngData(
-	std::vector<float>& pngData
-,	JSAMPLE* jpegData
-,	size_t image_width
-,	size_t image_height
-,	size_t channels
+    std::vector<float>& pngData
+,   JSAMPLE* jpegData
+,   size_t image_width
+,   size_t image_height
+,   size_t channels
 ){
 	pngData.resize(image_width*image_height*channels);
 
@@ -346,47 +346,47 @@ void color_space_transform(
 ,   const unsigned chnls
 ,   const bool rgb2ycbcr
 ){
-    //! Declarations
-    std::vector<float> tmp;
-    tmp.resize(chnls * width * height);
-    const unsigned red   = 0;
-    const unsigned green = width * height;
-    const unsigned blue  = width * height * 2;
+	//! Declarations
+	std::vector<float> tmp;
+	tmp.resize(chnls * width * height);
+	const unsigned red   = 0;
+	const unsigned green = width * height;
+	const unsigned blue  = width * height * 2;
 
 
-    if (rgb2ycbcr)
-    {
-    //#pragma omp parallel for
-        for (int k = 0; k < int(width * height); k++)
-        {
-            //! Y
-            tmp[k + red  ] =  0.299f * img[k + red] + 0.587f * img[k + green] + 0.114f * img[k + blue];
-            //! U
-            tmp[k + green] = (float)128 -0.1687f * img[k + red] - 0.3313f * img[k + green] + 0.500f * img[k + blue];
-            //! V
-            tmp[k + blue ] = (float)128 + 0.500f * img[k + red] - 0.4187f * img[k + green] - 0.0813f * img[k + blue];
-        }
-    }
-    else
-    {
-    //#pragma omp parallel for
-        for (int k = 0; k < int(width * height); k++)
-        {
-            //! Red   channel
-            tmp[k + red] = 1.000f * (img[k + red]) + 0.000f * img[k + green] + 1.402f * (img[k + blue]-128.0f);
-            //! Green channel
-            tmp[k + green] = 1.000f * (img[k + red]) - 0.34414f * (img[k + green]-128) - 0.71414f * (img[k + blue]-128.0f);
-            //! Blue  channel
-            tmp[k + blue] = 1.000f * (img[k + red]) + 1.772f * (img[k + green]-128) + 0.000f * img[k + blue];
-        }
-    }
+	if (rgb2ycbcr)
+	{
+	//#pragma omp parallel for
+		for (int k = 0; k < int(width * height); k++)
+		{
+			//! Y
+			tmp[k + red  ] =  0.299f * img[k + red] + 0.587f * img[k + green] + 0.114f * img[k + blue];
+			//! U
+			tmp[k + green] = (float)128 -0.1687f * img[k + red] - 0.3313f * img[k + green] + 0.500f * img[k + blue];
+			//! V
+			tmp[k + blue ] = (float)128 + 0.500f * img[k + red] - 0.4187f * img[k + green] - 0.0813f * img[k + blue];
+		}
+	}
+	else
+	{
+	//#pragma omp parallel for
+		for (int k = 0; k < int(width * height); k++)
+		{
+			//! Red   channel
+			tmp[k + red] = 1.000f * (img[k + red]) + 0.000f * img[k + green] + 1.402f * (img[k + blue]-128.0f);
+			//! Green channel
+			tmp[k + green] = 1.000f * (img[k + red]) - 0.34414f * (img[k + green]-128) - 0.71414f * (img[k + blue]-128.0f);
+			//! Blue  channel
+			tmp[k + blue] = 1.000f * (img[k + red]) + 1.772f * (img[k + green]-128) + 0.000f * img[k + blue];
+		}
+	}
    
-    //#pragma omp parallel for
-    for (int k = 0; k < int(width * height * chnls); k++)
+	//#pragma omp parallel for
+	for (int k = 0; k < int(width * height * chnls); k++)
 	{
 
 
-        img[k] = tmp[k];
+		img[k] = tmp[k];
 	}
 }
 

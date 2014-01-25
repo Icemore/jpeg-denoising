@@ -44,25 +44,6 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 		fdct(y, rho);
 		for(size_t i = 0; i < DCTSIZE2; ++i)
 		{
-			//if(rho[i] < u[i] - muU[i] * lambdaU[i] && rho[i] > l[i] + muL[i] * lambdaL[i])
-			//	continue;
-
-			//float cur = (rho[i] / sigmaSqr +  u[i]/muU[i] - lambdaU[i]) / (1/sigmaSqr + 1/muU[i]);
-			//if(cur >= u[i] - muU[i] * lambdaU[i])
-			//{
-			//	rho[i] = cur;
-			//	continue;
-			//}
-
-			//cur = (rho[i]/sigmaSqr + l[i]/muL[i] + lambdaL[i]) / (1/sigmaSqr + 1/muL[i]);
-			//if(cur <= l[i] + muL[i]*lambdaL[i])
-			//{
-			//	rho[i]=cur;
-			//	continue;
-			//}
-
-			//cout << "Can't optimize! "<<rho[i] << lambdaL[i] << " " << lambdaU[i] <<" " << l[i] <<" " <<u[i]<<endl;
-
 			float left = 1 / sigmaSqr;
 			float right = rho[i] / sigmaSqr;
 
@@ -79,6 +60,30 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 			}
 
 			rho[i] = right / left;
+
+			// alternative way to optimize function for rho[i]
+			// not sure if it works
+
+			/*
+			if(rho[i] < u[i] - muU[i] * lambdaU[i] && rho[i] > l[i] + muL[i] * lambdaL[i])
+				continue;
+
+			float cur = (rho[i] / sigmaSqr +  u[i]/muU[i] - lambdaU[i]) / (1/sigmaSqr + 1/muU[i]);
+			if(cur >= u[i] - muU[i] * lambdaU[i])
+			{
+				rho[i] = cur;
+				continue;
+			}
+
+			cur = (rho[i]/sigmaSqr + l[i]/muL[i] + lambdaL[i]) / (1/sigmaSqr + 1/muL[i]);
+			if(cur <= l[i] + muL[i]*lambdaL[i])
+			{
+				rho[i]=cur;
+				continue;
+			}
+
+			cout << "Can't optimize! "<<rho[i] << lambdaL[i] << " " << lambdaU[i] <<" " << l[i] <<" " <<u[i]<<endl;
+			*/
 		}
 
 		// Step for lambda
@@ -97,13 +102,6 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 
 		++cnt;
 	}
-
-	//idct(rho, y);
-
-	//if(cnt > 1)
-	//{
-	//	cout <<cnt <<endl;
-	//}
 
 	for(size_t i = 0; i < DCTSIZE2; ++i)
 	{
@@ -151,7 +149,7 @@ void optimize(float sigma, vector<float> orig, vector<float> & image, vector<blo
 		cout << "image to blocks done" << endl;
 
 		#pragma omp parallel for
-		for(int i = 0; i < rho.size(); ++i)
+		for(int i = 0; i < (int)rho.size(); ++i)
 		{
 			//y[i] = Pomega[i];
 			optimizeForBlock(Pomega[i], rho[i], y[i], lower[i], upper[i]);
@@ -164,8 +162,8 @@ void optimize(float sigma, vector<float> orig, vector<float> & image, vector<blo
 
 		for(size_t i = 0; i < image.size(); ++i)
 		{
-			image[i]+=128;
-			image[i] = round(image[i]);
+			image[i] += 128;
+			image[i] = (float)round(image[i]);
 			image[i] = std::min(255.0f, image[i]);
 			image[i] = std::max(0.0f, image[i]);
 		}
@@ -174,7 +172,7 @@ void optimize(float sigma, vector<float> orig, vector<float> & image, vector<blo
 
 		for(size_t i = 0; i < image.size(); ++i)
 		{
-			image[i] = round(image[i]);
+			image[i] = (float)round(image[i]);
 			image[i] = std::min(255.0f, image[i]);
 			image[i] = std::max(0.0f, image[i]);
 		}

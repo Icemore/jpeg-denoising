@@ -43,21 +43,30 @@ void printBlock(block t, int id, std::string msg)
 	cout << endl;
 }
 
+/*
+ * parameters:
+ * argv[1] - path to original png
+ * argv[2] - path to output png
+ * argv[3] - sigma
+ */
 int main(int argc, char **argv)
 {
-	//freopen("out.txt", "w", stdout);
 	initDCT();
 
 	size_t h, w, c;
-    vector<float> jpegData;
+	vector<float> jpegData;
 	vector<float> origImage;
 	CoeffBlocks coeffs;
 	QuantTables qtables;
 	SamplingFactors sfactors;
 
+	// load original png
 	load_image(argv[1], origImage, &w, &h, &c);
+
+	//make test jpeg
 	write_JPEG_file("test.jpg", origImage, w, h, c, 20);
 
+	//load and optimize jpeg
 	read_JPEG_file("test.jpg", jpegData, w, h, c);
 	read_JPEG_coefficients("test.jpg", coeffs, qtables, sfactors);
 
@@ -66,70 +75,54 @@ int main(int argc, char **argv)
 	int chSize = (w/DCTSIZE)*(h/DCTSIZE);
 	
 	jpegCoeffBlocksToMyBlocks(coeffs, rho);
-    orig = rho;
-    getBounds(rho, chSize, qtables, lower, upper);
-    dequant(rho, chSize, qtables);
+	orig = rho;
+
+	getBounds(rho, chSize, qtables, lower, upper);
+	dequant(rho, chSize, qtables);
 	
-    optimize(atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
+	optimize(atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
 
-    // test coeffs
-    for(size_t i = 0; i < orig.size(); ++i)
-    {
-        for(size_t j = 0; j < DCTSIZE2; ++j)
-        {
-            if(round(rho[i][j] / qtables[i/chSize][j]) != orig[i][j])
-                    cout << "1 coef fail " << rho[i][j] <<" " << orig[i][j] << " " << qtables[i/chSize][j] <<endl;
-        }
-    }
-
-	//printChannels(rho, 1, "rho", chSize);
-
-	//block tmp(DCTSIZE2);
-	//idct(rho[1], tmp);
-	//for(size_t i = 0; i < DCTSIZE2; ++i)
-	//{
-	//	tmp[i]=round(tmp[i]);
-	//}
-	//printBlock(tmp, 0, "rho idct");
-	//fdct(tmp, tmp);
-	//printBlock(tmp, 0, "rho idct - fdct");
-
-	//printChannels(lower, 1, "lower", chSize);
-	//printChannels(upper, 1, "upper", chSize);
-    
-    // from coeffs
+	// test coeffs
+	for(size_t i = 0; i < orig.size(); ++i)
+	{
+		for(size_t j = 0; j < DCTSIZE2; ++j)
+		{
+			if(round(rho[i][j] / qtables[i/chSize][j]) != orig[i][j])
+					cout << "1 coef fail " << rho[i][j] <<" " << orig[i][j] << " " << qtables[i/chSize][j] <<endl;
+		}
+	}
+	
+	// restore image from coeffs
 	coeffsToImage(rho, jpegData, w, h, c);
 
 	cout << "!!!PSNR: " << PSNR(jpegData, origImage) << endl;
 
+	//write final image to png
 	write_png_f32(argv[2], &jpegData[0], w, h, c);
-    write_JPEG_file("q.jpg", jpegData, w, h, c, 80, &qtables);
-
-	vector<block> t;
-	imageToBlocks(jpegData, t, w, h, c);
-	//printChannels(t, 1, "pixels rgb", chSize);
 	
+	//compress final image with same parameters that was in starting one
+	write_JPEG_file("compressed.jpg", jpegData, w, h, c, 80, &qtables);
+
+	//check that we got the same image
+	vector<block> t;
+	imageToBlocks(jpegData, t, w, h, c);	
 
 	color_space_transform(jpegData, w, h, c, true);
 	for(size_t i = 0; i < jpegData.size(); ++i)
 	{
-		jpegData[i] = round(jpegData[i]);
+		jpegData[i] = (float)round(jpegData[i]);
 		jpegData[i] = std::max(0.0f, jpegData[i]);
 		jpegData[i] = std::min(255.0f, jpegData[i]);
-		jpegData[i]-=128;
+		jpegData[i] -= 128;
 	}
 
 	imageToBlocks(jpegData, t, w, h, c);
-	//printChannels(t, 1, "ycbcr", chSize);
 	for(size_t i = 0; i < t.size(); ++i)
 	{
 		fdct(t[i], t[i]);
 	}
 
-	//printChannels(t, 1, "coeffs from image", chSize);
-
-
-	read_JPEG_coefficients("q.jpg", coeffs, qtables, sfactors);
+	read_JPEG_coefficients("compressed.jpg", coeffs, qtables, sfactors);
 	
 	jpegCoeffBlocksToMyBlocks(coeffs, t);
 

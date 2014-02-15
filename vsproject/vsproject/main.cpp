@@ -47,7 +47,8 @@ void printBlock(block t, int id, std::string msg)
  * parameters:
  * argv[1] - path to original png
  * argv[2] - path to output png
- * argv[3] - sigma
+ * argv[3] - sigma for bm3d
+ * argv[4] - number of iterations
  */
 int main(int argc, char **argv)
 {
@@ -80,7 +81,7 @@ int main(int argc, char **argv)
 	getBounds(rho, chSize, qtables, lower, upper);
 	dequant(rho, chSize, qtables);
 	
-	optimize(atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
+	optimize(atoi(argv[4]), atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
 
 	// test coeffs
 	for(size_t i = 0; i < orig.size(); ++i)

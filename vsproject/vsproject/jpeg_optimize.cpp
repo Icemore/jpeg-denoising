@@ -113,7 +113,7 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 	}
 }
 
-void optimize(float sigma, vector<float> orig, vector<float> & image, vector<block> & rho, vector<block> & lower, vector<block> & upper, int w, int h, int c)
+void optimize(int iterations, float sigma, vector<float> orig, vector<float> & image, vector<block> & rho, vector<block> & lower, vector<block> & upper, int w, int h, int c)
 {
 	vector<float> tmp(image.size());
 	vector<float> res(image.size());
@@ -127,7 +127,7 @@ void optimize(float sigma, vector<float> orig, vector<float> & image, vector<blo
 		y[i].resize(DCTSIZE2);
 
 
-	for(size_t t = 0; t < 10; ++t)
+	for(size_t t = 0; t < iterations; ++t)
 	{
 		cout << "PSNR " << t <<": " << PSNR(orig, image) << endl;
 		cout << "starting bm3d" << endl;

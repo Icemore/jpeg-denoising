@@ -68,10 +68,13 @@ int load_image(
 	//! test if image is really a color image and exclude the alpha channel
 	if (c > 2)
 	{
-	    unsigned k = 0;
-	    while (k < w * h && tmp[k] == tmp[w * h + k] && tmp[k] == tmp[2 * w * h + k])
-            k++;
-        c = (k == w * h ? 1 : 3);
+		c = 3;
+
+		// this check brokes grayscale images, so I deleted it
+		//unsigned k = 0;
+		//while (k < w * h && tmp[k] == tmp[w * h + k] && tmp[k] == tmp[2 * w * h + k])
+		//       k++;
+		//c = (k == w * h ? 1 : 3);
 	}
 
 	//! Some image informations

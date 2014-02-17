@@ -49,6 +49,7 @@ void printBlock(block t, int id, std::string msg)
  * argv[2] - path to output png
  * argv[3] - sigma for bm3d
  * argv[4] - number of iterations
+ * argv[5] - jpeg quality
  */
 int main(int argc, char **argv)
 {
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
 	load_image(argv[1], origImage, &w, &h, &c);
 
 	//make test jpeg
-	write_JPEG_file("test.jpg", origImage, w, h, c, 20);
+	write_JPEG_file("test.jpg", origImage, w, h, c, atoi(argv[5]));
 
 	//load and optimize jpeg
 	read_JPEG_file("test.jpg", jpegData, w, h, c);

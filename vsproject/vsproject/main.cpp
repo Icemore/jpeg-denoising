@@ -53,7 +53,7 @@ void printBlock(block t, int id, std::string msg)
  * argv[6] - half size of the window
  * argv[7] - lambda3D
  * argv[8] - tau 1st
- * argb[9] - tau 2nd
+ * argv[9] - tau 2nd
  */
 int main(int argc, char **argv)
 {

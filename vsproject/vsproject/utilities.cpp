@@ -49,9 +49,9 @@
 int load_image(
     char* name
 ,   vector<float> &img
-,   unsigned * width
-,   unsigned * height
-,   unsigned * chnls
+,   size_t * width
+,   size_t * height
+,   size_t * chnls
 ){
     //! read input image
 	cout << endl << "Read input image...";

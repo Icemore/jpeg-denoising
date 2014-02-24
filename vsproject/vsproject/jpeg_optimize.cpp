@@ -113,7 +113,22 @@ void optimizeForBlock(block const & Pomega, block & rho, block & y, block const 
 	}
 }
 
-void optimize(int iterations, float sigma, vector<float> orig, vector<float> & image, vector<block> & rho, vector<block> & lower, vector<block> & upper, int w, int h, int c)
+void optimize(
+	int iterations
+,	float sigma
+,	vector<float> orig
+,	vector<float> & image
+,	vector<block> & rho
+,	vector<block> & lower
+,	vector<block> & upper
+,	int w
+,	int h
+,	int c
+,	int windowSize
+,	float lambda3D
+,	float tauMatchFirst
+,	float tauMatchSecond
+)
 {
 	vector<float> tmp(image.size());
 	vector<float> res(image.size());
@@ -126,12 +141,13 @@ void optimize(int iterations, float sigma, vector<float> orig, vector<float> & i
 	for(size_t i = 0; i < y.size(); ++i)
 		y[i].resize(DCTSIZE2);
 
-
 	for(size_t t = 0; t < iterations; ++t)
 	{
 		cout << "PSNR " << t <<": " << PSNR(orig, image) << endl;
 		cout << "starting bm3d" << endl;
-		run_bm3d(sigma-t, image, tmp, res, w, h, c, true, true, BIOR, BIOR, YCBCR);
+		
+		run_bm3d(sigma - t, image, tmp, res, w, h, c, true, true, BIOR, BIOR, YCBCR, windowSize, windowSize, lambda3D, tauMatchFirst, tauMatchSecond);
+		
 		//res = image;
 		cout << "bm3d done" << endl;
 

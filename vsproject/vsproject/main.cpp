@@ -50,6 +50,10 @@ void printBlock(block t, int id, std::string msg)
  * argv[3] - sigma for bm3d
  * argv[4] - number of iterations
  * argv[5] - jpeg quality
+ * argv[6] - half size of the window
+ * argv[7] - lambda3D
+ * argv[8] - tau 1st
+ * argb[9] - tau 2nd
  */
 int main(int argc, char **argv)
 {
@@ -82,7 +86,12 @@ int main(int argc, char **argv)
 	getBounds(rho, chSize, qtables, lower, upper);
 	dequant(rho, chSize, qtables);
 	
-	optimize(atoi(argv[4]), atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c);
+	int windowSize = argc > 6 ? atoi(argv[6]) : 16;
+	float lambda3D = argc > 7 ? atof(argv[7]) : 2.7f;
+	float tau1 = argc > 8 ? atof(argv[8]) : -1;
+	float tau2 = argc > 9 ? atof(argv[9]) : -1;
+
+	optimize(atoi(argv[4]), atoi(argv[3]), origImage, jpegData, rho, lower, upper, w, h, c, windowSize, lambda3D, tau1, tau2);
 
 	// test coeffs
 	for(size_t i = 0; i < orig.size(); ++i)

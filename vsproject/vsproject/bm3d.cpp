@@ -87,10 +87,15 @@ int run_bm3d(
 ,   const unsigned tau_2D_hard
 ,   const unsigned tau_2D_wien
 ,   const unsigned color_space
+,   const unsigned nHard
+,   const unsigned nWien
+,   const float lambdaHard3D
+,   float tauMatchFirst
+,   float tauMatchSecond
 ){
     //! Parameters
-    const unsigned nHard = 16; //! Half size of the search window
-    const unsigned nWien = 16; //! Half size of the search window
+    //const unsigned nHard = 16; //! Half size of the search window
+    //const unsigned nWien = 16; //! Half size of the search window
     const unsigned kHard = (tau_2D_hard == BIOR || sigma < 40.f ? 8 : 12); //! Must be a power of 2 if tau_2D_hard == BIOR
     const unsigned kWien = (tau_2D_wien == BIOR || sigma < 40.f ? 8 : 12); //! Must be a power of 2 if tau_2D_wien == BIOR
     const unsigned NHard = 16; //! Must be a power of 2
@@ -162,7 +167,7 @@ int run_bm3d(
         cout << "step 1...";
         bm3d_1st_step(sigma, img_sym_noisy, img_sym_basic, w_b, h_b, chnls, nHard,
                       kHard, NHard, pHard, useSD_h, color_space, tau_2D_hard,
-                      &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
+                      &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0], lambdaHard3D, tauMatchFirst);
         cout << "done." << endl;
 
         //! To avoid boundaries problem
@@ -192,7 +197,7 @@ int run_bm3d(
         cout << "step 2...";
         bm3d_2nd_step(sigma, img_sym_noisy, img_sym_basic, img_sym_denoised,
                 w_b, h_b, chnls, nWien, kWien, NWien, pWien, useSD_w, color_space,
-                tau_2D_wien, &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
+                tau_2D_wien, &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0], tauMatchSecond);
         cout << "done." << endl;
 
         //! Obtention of img_denoised
@@ -241,7 +246,7 @@ int run_bm3d(
                 bm3d_1st_step(sigma, sub_noisy[n], sub_basic[n], w_table[n],
                               h_table[n], chnls, nHard, kHard, NHard, pHard, useSD_h,
                               color_space, tau_2D_hard, &plan_2d_for_1[n],
-                              &plan_2d_for_2[n], &plan_2d_inv[n]);
+                              &plan_2d_for_2[n], &plan_2d_inv[n], lambdaHard3D, tauMatchFirst);
             }
         }
         cout << "done." << endl;
@@ -277,7 +282,7 @@ int run_bm3d(
                 bm3d_2nd_step(sigma, sub_noisy[n], sub_basic[n], sub_denoised[n],
                               w_table[n], h_table[n], chnls, nWien, kWien, NWien, pWien,
                               useSD_w, color_space, tau_2D_wien, &plan_2d_for_1[n],
-                              &plan_2d_for_2[n], &plan_2d_inv[n]);
+                              &plan_2d_for_2[n], &plan_2d_inv[n], tauMatchSecond);
             }
         }
         cout << "done." << endl;
@@ -349,6 +354,8 @@ void bm3d_1st_step(
 ,   fftwf_plan *  plan_2d_for_1
 ,   fftwf_plan *  plan_2d_for_2
 ,   fftwf_plan *  plan_2d_inv
+,   const float lambdaHard3D
+,   float tauMatch
 ){
     //! Estimatation of sigma on each channel
     vector<float> sigma_table(chnls);
@@ -356,8 +363,12 @@ void bm3d_1st_step(
         return;
 
     //! Parameters initialization
-    const float    lambdaHard3D = 2.7f;            //! Threshold for Hard Thresholding
-    const float    tauMatch = (chnls == 1 ? 3.f : 1.f) * (sigma_table[0] < 35.0f ? 2500 : 5000); //! threshold used to determinate similarity between patches
+    //const float    lambdaHard3D = 2.7f;            //! Threshold for Hard Thresholding
+    //const float    tauMatch = (chnls == 1 ? 3.f : 1.f) * (sigma_table[0] < 35.0f ? 2500 : 5000); //! threshold used to determinate similarity between patches
+
+    if(tauMatch < 0)
+        tauMatch = (sigma_table[0] < 35.0f ? 2500 : 5000);
+    tauMatch *=  (chnls == 1 ? 3.f : 1.f);
 
     //! Initialization for convenience
     vector<unsigned> row_ind;
@@ -535,6 +546,7 @@ void bm3d_2nd_step(
 ,   fftwf_plan *  plan_2d_for_1
 ,   fftwf_plan *  plan_2d_for_2
 ,   fftwf_plan *  plan_2d_inv
+,   float tauMatch
 ){
     //! Estimatation of sigma on each channel
     vector<float> sigma_table(chnls);
@@ -542,7 +554,10 @@ void bm3d_2nd_step(
         return;
 
     //! Parameters initialization
-    const float tauMatch = (sigma_table[0] < 35.0f ? 400 : 3500); //! threshold used to determinate similarity between patches
+    //const float tauMatch = (sigma_table[0] < 35.0f ? 400 : 3500); //! threshold used to determinate similarity between patches
+
+    if(tauMatch < 0)
+        tauMatch = (sigma_table[0] < 35.0f ? 400 : 3500);
 
     //! Initialization for convenience
     vector<unsigned> row_ind;
